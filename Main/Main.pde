@@ -14,13 +14,18 @@ State state = State.DRAWING;
 
 int animatingStart = 0;
 
+PVector topLeft = new PVector();
+PVector topRight = new PVector();
+PVector bottomLeft = new PVector();
+PVector bottomRight = new PVector();
+
 void setup(){
   size(1024, 768);
   loadAllLines();
 }
 
 void draw(){
-  background(255);
+  background(0);
   switch(state){
     case DRAWING:
       if(millis()-lastInteraction>autoEnterScreensaver) {
@@ -53,14 +58,60 @@ void drawLines(ArrayList<ArrayList<PVector>> lines, float percent){
    ArrayList<PVector> line = lines.get(i);
    if(line.size()>0){
      prev = line.get(0);
-     for(int j=0; j<line.size() && totalPrinted<totalToPrint;j++){
+     topLeft.x = prev.x;
+     topLeft.y = prev.y;
+     topRight.x = prev.x;
+     topRight.y = prev.y;
+     for(int j=1; j<line.size() && totalPrinted<totalToPrint;j++){
        PVector coord = line.get(j);
-       line(prev.x, prev.y, coord.x, coord.y);
+       drawLine(prev, coord);
        prev = coord;
        totalPrinted++;
      }
    }
   }
+}
+
+void drawLine(PVector prev, PVector coord){
+  /*
+  float angle = atan2(coord.x-prev.x, coord.y-prev.y)+PI/2;//we sum PI/2 to add 90o degrees and rotate properly
+  float x = cos(angle);
+  float y = sin(angle);
+  float space = 4;
+  float total = 10;
+  for(int i=0; i<total; i++){
+    float index = i-total/2;
+    ellipse(coord.x-space*index*x, coord.y-space*index*y, 5, 5);
+  }
+  */
+  float angle = PI/4;//atan2(coord.x-prev.x, coord.y-prev.y)+PI/2;//we sum PI/2 to add 90o degrees and rotate properly
+  float velocity = dist(coord.x, coord.y, prev.x, prev.y);
+  float x = cos(angle);
+  float y = sin(angle);
+  float size = lerp(20, 2, max(0, min(1, velocity/100)));
+  bottomLeft.x = topRight.x;
+  bottomLeft.y = topRight.y;
+  bottomRight.x = topLeft.x;
+  bottomRight.y = topLeft.y;
+  topLeft.x = coord.x-size*x;
+  topLeft.y = coord.y-size*y;
+  topRight.x = coord.x+size*x;
+  topRight.y = coord.y+size*y;
+  
+  stroke(255);
+  fill(255);
+  strokeWeight(1);
+  beginShape();
+  vertex(topLeft.x, topLeft.y);
+  vertex(topRight.x, topRight.y);
+  vertex(bottomLeft.x, bottomLeft.y);
+  vertex(bottomRight.x, bottomRight.y);
+  endShape(CLOSE);
+  
+  stroke(255);
+  strokeWeight(3);
+  noFill();
+  line(prev.x, prev.y, coord.x, coord.y);
 }
 
 void drawAnimating(){
@@ -85,7 +136,14 @@ void mousePressed(){
 void mouseDragged(){
  lastInteraction = millis();
  ArrayList<PVector> line = currentLines.get(currentLines.size()-1);
- line.add(new PVector(mouseX, mouseY));
+ if(line.size()>0){
+   PVector prev = line.get(line.size()-1);
+   if(dist(mouseX, mouseY, prev.x, prev.y)>2){
+     line.add(new PVector(mouseX, mouseY));
+   }
+ }else{
+   line.add(new PVector(mouseX, mouseY));
+ }
 }
 
 void mouseReleased(){
