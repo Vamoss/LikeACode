@@ -6,8 +6,11 @@ int autoNextScreensaver = 5000;
 int currentAllLines = 0;
 ArrayList<ArrayList<ArrayList<PVector>>> allLines = new ArrayList<ArrayList<ArrayList<PVector>>>();
 ArrayList<ArrayList<PVector>> currentLines = new ArrayList<ArrayList<PVector>>();
+ArrayList<Integer> ids = new ArrayList<Integer>();
 
 int lastInteraction = 0;
+
+int nextId = 0;
 
 enum State {DRAWING,ANIMATING};
 State state = State.DRAWING;
@@ -21,6 +24,7 @@ PVector bottomRight = new PVector();
 
 void setup(){
   size(1024, 768);
+  textSize(50);
   loadAllLines();
 }
 
@@ -30,12 +34,14 @@ void draw(){
     case DRAWING:
       if(millis()-lastInteraction>autoEnterScreensaver) {
         saveCurrentLine();
+        animatingStart = millis();
         changeState(State.ANIMATING);
       }
       fill(255);
       noStroke();
       arc(30, 30, 30, 30, 0, TWO_PI*(1-(float)(millis()-lastInteraction)/(float)autoEnterScreensaver), PIE);
       drawLines(currentLines, 1);
+      text("#"+(nextId+1), width-120, height-30);
       break;
     case ANIMATING:
       drawAnimating();
@@ -115,6 +121,12 @@ void drawAnimating(){
     if(currentAllLines>=allLines.size())
       currentAllLines = 0;
   }
+  fill(255);
+  noStroke();
+  println(allLines.size());
+  println(ids.size());
+  println("-------");
+  text("#"+ids.get(currentAllLines), width-120, height-30);
 }
 
 void mousePressed(){
@@ -158,10 +170,11 @@ void saveCurrentLine(){
    if(lineData!="")
      data = append(data, lineData);
   }
-  if(data.length>0)
-    saveStrings("data/lines/draw"+millis()+".txt", data);
-  
-  allLines.add(currentLines);
+  if(data.length>0){
+    nextId++;
+    saveStrings("data/lines/"+nextId+".txt", data);
+    allLines.add(currentLines);
+  }
   
   //reset
   currentLines = new ArrayList<ArrayList<PVector>>();
@@ -175,7 +188,11 @@ void loadAllLines(){
     String path = files[i].getAbsolutePath();
     if(path.toLowerCase().endsWith(".txt"))
     {
-      //println(path.toLowerCase(), i);
+      String id = files[i].getName();
+      id = id.substring( 0, id.length()-4 );
+      ids.add(parseInt(id));
+      nextId = max(nextId, parseInt(id));
+      
       String[] allLinesData = loadStrings(path);
       ArrayList<ArrayList<PVector>> lines = new ArrayList<ArrayList<PVector>>();
       for (int j = 0 ; j < allLinesData.length; j++) {
