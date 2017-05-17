@@ -32,6 +32,9 @@ void draw(){
         saveCurrentLine();
         changeState(State.ANIMATING);
       }
+      fill(255);
+      noStroke();
+      arc(30, 30, 30, 30, 0, TWO_PI*(1-(float)(millis()-lastInteraction)/(float)autoEnterScreensaver), PIE);
       drawLines(currentLines, 1);
       break;
     case ANIMATING:
@@ -46,7 +49,6 @@ void changeState(State s){
 
 void drawLines(ArrayList<ArrayList<PVector>> lines, float percent){
   PVector prev = new PVector();
-  println(percent);
   
   int total = 0;
   for(int i=0; i<lines.size(); i++) 
@@ -73,17 +75,6 @@ void drawLines(ArrayList<ArrayList<PVector>> lines, float percent){
 }
 
 void drawLine(PVector prev, PVector coord){
-  /*
-  float angle = atan2(coord.x-prev.x, coord.y-prev.y)+PI/2;//we sum PI/2 to add 90o degrees and rotate properly
-  float x = cos(angle);
-  float y = sin(angle);
-  float space = 4;
-  float total = 10;
-  for(int i=0; i<total; i++){
-    float index = i-total/2;
-    ellipse(coord.x-space*index*x, coord.y-space*index*y, 5, 5);
-  }
-  */
   float angle = PI/4;//atan2(coord.x-prev.x, coord.y-prev.y)+PI/2;//we sum PI/2 to add 90o degrees and rotate properly
   float velocity = dist(coord.x, coord.y, prev.x, prev.y);
   float x = cos(angle);
@@ -115,7 +106,6 @@ void drawLine(PVector prev, PVector coord){
 }
 
 void drawAnimating(){
-  println(currentAllLines);
   if(allLines.size()>0){
     drawLines(allLines.get(currentAllLines), parseFloat(millis()-animatingStart)/parseFloat(autoNextScreensaver/2));
   }
