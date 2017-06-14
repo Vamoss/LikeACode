@@ -172,6 +172,7 @@ void saveCurrentLine(){
   }
   if(data.length>0){
     nextId++;
+    ids.add(nextId);
     saveStrings("data/lines/"+nextId+".txt", data);
     allLines.add(currentLines);
   }
@@ -190,7 +191,6 @@ void loadAllLines(){
     {
       String id = files[i].getName();
       id = id.substring( 0, id.length()-4 );
-      ids.add(parseInt(id));
       nextId = max(nextId, parseInt(id));
       
       String[] allLinesData = loadStrings(path);
@@ -206,6 +206,7 @@ void loadAllLines(){
         lines.add(line);
       }
       allLines.add(lines);
+      ids.add(parseInt(id));
     }
   }
 }
